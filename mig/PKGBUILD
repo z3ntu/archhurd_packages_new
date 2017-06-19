@@ -1,4 +1,4 @@
-# Maintainer: Alexander Preisinger <alexander.preisinger@gmail.com>
+# Maintainer: Luca Weiss <luca (at) z3ntu (dot) xyz>
 
 pkgname=mig
 pkgver=1.8
@@ -22,12 +22,12 @@ build() {
   cd "$srcdir/$pkgname-build"
 
   ../$pkgname-$pkgver/configure --prefix= \
-    --libexecdir=/lib || return 1
+    --libexecdir=/lib
 
-  make || return 1
+  make
 }
 
 package() {
   cd $srcdir/$pkgname-build
-  make DESTDIR=$pkgdir install || return 1
+  make DESTDIR=$pkgdir install
 }
