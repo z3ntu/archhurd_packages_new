@@ -1,7 +1,7 @@
 # Maintainer: Luca Weiss <luca (at) z3ntu (dot) xyz>
 
 pkgname=gnumach
-pkgver=v1.8.r17.gfac0a603
+pkgver=1.8.r17.gfac0a603
 pkgrel=1
 pkgdesc="GNU Mach"
 arch=(i686)
@@ -14,7 +14,7 @@ md5sums=('SKIP')
 
 pkgver() {
   cd "$pkgname"
-  git describe --long | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
+  git describe --long | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
 }
 
 build() {

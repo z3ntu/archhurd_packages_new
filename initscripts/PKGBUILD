@@ -1,7 +1,7 @@
-# Maintainer: Matthias Lanzinger <mlaenz@gmail.com>
+# Maintainer: Luca Weiss <luca (at) z3ntu (dot) xyz>
 
 pkgname=initscripts
-pkgver=2017.07.19
+pkgver=r25.cd36acd
 pkgrel=1
 pkgdesc="System initialization/bootup scripts"
 arch=('i686')
@@ -14,7 +14,12 @@ depends=('glibc' 'bash' 'awk' 'grep' 'coreutils' 'sed' 'hostname'
 source=(git+https://github.com/archhurd/initscripts.git)
 md5sums=('SKIP')
 
+pkgver() {
+  cd "$pkgname"
+  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
 package() {
-  cd ${srcdir}/${pkgname}/
-  DESTDIR=${pkgdir} ./install.sh
+  cd "$pkgname"
+  DESTDIR="$pkgdir" ./install.sh
 }
