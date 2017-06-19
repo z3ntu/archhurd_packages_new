@@ -1,8 +1,7 @@
-# Maintainer Stephen Gilles <stephendgilles@gmail.com>
-# Maintainer Matthias Lanzinger <mlaenz@gmail.com>
+# Maintainer: Luca Weiss <luca (at) z3ntu (dot) xyz>
 
 pkgname=hurd
-pkgver=$(date +%Y%m%d)
+pkgver=0.9.r48.ga4f5b763
 pkgrel=1
 pkgdesc="The GNU Hurd"
 arch=(i686)
@@ -13,76 +12,36 @@ depends=('gnumach' 'glibc' 'initscripts')
 makedepends=('git' 'glibc')
 options=('!makeflags')
 backup=(etc/ttys)
-source=(#01_libports-prevent-hang.patch
-#'git+git://git.sv.gnu.org/hurd/hurd.git'
-console-client_fix_prefix.patch
+source=(git+https://git.savannah.gnu.org/git/hurd/hurd.git
         ttys)
+md5sums=('SKIP'
+         '9d20e63e81835c76cc708ce6184f3530')
 
-_hurdgitroot="git://git.sv.gnu.org/hurd/hurd.git"
+pkgver() {
+  cd "$pkgname"
+  git describe --long | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
+}
 
 build() {
-  cd "$srcdir"
-  msg "Connecting to GIT server...."
-
-  if [ -d hurd ] ; then
-    cd hurd && git pull &&  cd ..
-    msg "The local files are updated."
-  else
-    #In case only one dir exists (lazy solution)
-    rm -rf hurd
-
-    git clone $_hurdgitroot hurd
-
-  fi
-  #git -C hurd checkout 849353cad0ad2b0a2242d7048368e06d96ffdea4
-  msg "GIT checkout done or server timeout"
-
-  if [ -e ${srcdir}/.prepared ]; then
-    msg2 "Build directory already prepared"
-  else
-    msg2 "Preparing build directory"
-    rm -rf "$srcdir/build"
-    cp -r "$srcdir/hurd" "$srcdir/build"
-    cd "$srcdir/build"
-
-    # Diego Nieto Cid's patch to prevent hanging
-    #patch -Np1 -i ${srcdir}/01_libports-prevent-hang.patch
-
-    touch ${srcdir}/.prepared
-  fi
+  cd "$srcdir/$pkgname"
 
   #
   # BUILD HERE
   # 
   export LDFLAGS="$(echo $LDFLAGS | sed 's/-Wl,--as-needed//')"
   
-#  if [ -e ${srcdir}/.configured ]; then
-#    msg2 "Already configured"
-#  else
-    msg2 "Configuring"
-    autoreconf -vif 
-    ./configure --prefix=/usr --disable-profile \
+  msg2 "Configuring"
+  autoreconf -vif 
+  ./configure --prefix=/usr --disable-profile \
               --enable-static-progs='iso9660fs,ext2fs,ufs' \
               --without-parted
-#    touch ${srcdir}/.configured
-#  fi
-
-  # Fakeroot or --asroot may break this.  May need to be run by hand
-  #make libihash || true
   make
 }
 
 package() {
-  cd "$srcdir/build"
-
-  patch -Np1 -i $srcdir/console-client_fix_prefix.patch || true # -N doesn't work apparently...
+  cd "$srcdir/$pkgname"
 
   make prefix="$pkgdir/" install
-
-  # install msgids
-#  make -C hurd/ hurd.msgids
-#  mkdir $pkgdir/share/msgids
-#  cp hurd/*.msgids $pkgdir/share/msgids
 
   install -m 644 $srcdir/ttys $pkgdir/etc/ttys
 
@@ -92,10 +51,5 @@ package() {
   # for rc.shutdown
   mv $pkgdir/sbin/halt $pkgdir/sbin/internal_halt
   mv $pkgdir/sbin/reboot $pkgdir/sbin/internal_reboot
-
-  #for pthread weirdness
-#  mkdir -p ${pkgdir}/include/gnu
-#  cp ${srcdir}/stubs-pthread.h ${pkgdir}/include/gnu/
 }
 
-md5sums=('9d20e63e81835c76cc708ce6184f3530')
