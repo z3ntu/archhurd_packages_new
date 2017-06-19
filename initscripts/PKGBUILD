@@ -1,7 +1,7 @@
 # Maintainer: Matthias Lanzinger <mlaenz@gmail.com>
 
 pkgname=initscripts
-pkgver=2010.08
+pkgver=2017.07.19
 pkgrel=1
 pkgdesc="System initialization/bootup scripts"
 arch=('i686')
@@ -11,16 +11,10 @@ groups=('base')
 backup=(etc/rc.conf etc/rc.local etc/rc.local.shutdown)
 depends=('glibc' 'bash' 'awk' 'grep' 'coreutils' 'sed' 'hostname' 
 		 'ncurses' 'findutils' 'hurd>=20100321-3')
-source=(${pkgname}-${pkgver}-${pkgrel}.tar.xz)
-md5sums=('4acfb5f6e8b377762a4aa09f0b5242e4')
+source=(git+https://github.com/archhurd/initscripts.git)
+md5sums=('SKIP')
 
-mksource(){
-    git clone ssh://melpo@archhurd.org/srv/gitosis/repositories/initscripts.git ${pkgname}-${pkgver}-${pkgrel}
-    bsdtar -Jcf ${pkgname}-${pkgver}-${pkgrel}.tar.xz ${pkgname}-${pkgver}-${pkgrel}
-    rm -rf ${pkgname}-${pkgver}-${pkgrel}
-}
-
-build() {
-  cd ${srcdir}/${pkgname}-${pkgver}-${pkgrel}/
+package() {
+  cd ${srcdir}/${pkgname}/
   DESTDIR=${pkgdir} ./install.sh
 }

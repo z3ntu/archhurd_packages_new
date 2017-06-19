@@ -15,6 +15,7 @@ options=('!makeflags')
 backup=(etc/ttys)
 source=(#01_libports-prevent-hang.patch
 #'git+git://git.sv.gnu.org/hurd/hurd.git'
+console-client_fix_prefix.patch
         ttys)
 
 _hurdgitroot="git://git.sv.gnu.org/hurd/hurd.git"
@@ -55,16 +56,16 @@ build() {
   # 
   export LDFLAGS="$(echo $LDFLAGS | sed 's/-Wl,--as-needed//')"
   
-  if [ -e ${srcdir}/.configured ]; then
-    msg2 "Already configured"
-  else
+#  if [ -e ${srcdir}/.configured ]; then
+#    msg2 "Already configured"
+#  else
     msg2 "Configuring"
     autoreconf -vif 
     ./configure --prefix=/usr --disable-profile \
               --enable-static-progs='iso9660fs,ext2fs,ufs' \
               --without-parted
-    touch ${srcdir}/.configured
-  fi
+#    touch ${srcdir}/.configured
+#  fi
 
   # Fakeroot or --asroot may break this.  May need to be run by hand
   #make libihash || true
@@ -73,6 +74,9 @@ build() {
 
 package() {
   cd "$srcdir/build"
+
+  patch -Np1 -i $srcdir/console-client_fix_prefix.patch || true # -N doesn't work apparently...
+
   make prefix="$pkgdir/" install
 
   # install msgids
