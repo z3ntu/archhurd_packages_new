@@ -1,0 +1,19 @@
+--- a/usr/bin/makepkg	2010-08-12 22:00:58.970000000 +0000
++++ b/usr/bin/makepkg	2010-08-12 22:14:14.910000000 +0000
+@@ -1714,11 +1714,11 @@
+ 		plain "$(gettext "placing 'fakeroot' in the BUILDENV array in %s.")" "$MAKEPKG_CONF"
+ 		sleep 1
+ 	fi
+-else
+-	if [[ -z $FAKEROOTKEY ]]; then
+-		error "$(gettext "Do not use the '-F' option. This option is only for use by makepkg.")"
+-		exit 1 # TODO: error code
+-	fi
++#else
++#	if [[ -z $FAKEROOTKEY ]]; then
++#		error "$(gettext "Do not use the '-F' option. This option is only for use by makepkg.")"
++#		exit 1 # TODO: error code
++#	fi
+ fi
+ 
+ # check for sudo if we will need it during makepkg execution

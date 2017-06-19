@@ -1,0 +1,7 @@
+*~
+*.gz
+*.xz
+*.bzip2
+*.deb
+pkg/
+src/
