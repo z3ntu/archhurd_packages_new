@@ -4,6 +4,9 @@
 *.bzip2
 *.bz2
 *.deb
+*.sig
 pkg/
 src/
 */*/
+
+bash*-0*
