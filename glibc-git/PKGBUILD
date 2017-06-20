@@ -20,19 +20,23 @@ backup=(etc/gai.conf
         etc/nscd.conf)
 	options=('!strip')  #'staticlibs')
 install=glibc.install
-source=(#git+https://sourceware.org/git/glibc.git#commit=${_commit}
-#https://ftp.gnu.org/gnu/glibc/glibc-2.25.tar.xz
-#http://http.debian.net/debian/pool/main/g/glibc/glibc_2.24.orig.tar.xz
-https://cloudfront.debian.net/debian-ports/pool-hurd-i386/main/g/glibc/glibc-source_2.22-11_all.deb
+source=(git+https://git.savannah.gnu.org/git/hurd/glibc.git#branch=tschwinge/Roger_Whittaker
+#        https://github.com/bminor/glibc/commit/d145a456d9fcdc5d8560f4035bb6e35531ba8493.patch modified into mach_fix_old_style_function_definition.patch
+	mach_fix_old_style_function_definition.patch
+	old_style_2.patch
         locale.gen.txt
         locale-gen)
-md5sums=('b31e6ceea54f3b78d48febbdcbf159f1'
+md5sums=('SKIP'
+         '963c34f827f8450f345152f40a72dae8'
+         '9584b665221a57fb1f205d2ac341e737'
          '2c19b758a15b57d694df43348644fbfb'
          '476e9113489f93b348b21e144b6a8fcf')
 
 prepare() {
-  tar xf data.tar.xz
   mkdir glibc-build
+  cd glibc
+  patch -Np1 < $srcdir/mach_fix_old_style_function_definition.patch
+  patch -Np1 < $srcdir/old_style_2.patch
 }  
 
 build() {

@@ -22,8 +22,12 @@ pkgver() {
   git describe --long | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
 }
 
+#prepare() {
+#  mkdir build
+#}
+
 build() {
-  cd "$srcdir/$pkgname"
+  cd "$srcdir/build"
 
   #
   # BUILD HERE
@@ -31,15 +35,15 @@ build() {
   export LDFLAGS="$(echo $LDFLAGS | sed 's/-Wl,--as-needed//')"
   
   msg2 "Configuring"
-  autoreconf -vif 
-  ./configure --prefix=/usr --disable-profile \
+  autoreconf -vif ../$pkgname
+  ../$pkgname/configure --prefix=/usr --disable-profile \
               --enable-static-progs='iso9660fs,ext2fs,ufs' \
               --without-parted
   make
 }
 
 package() {
-  cd "$srcdir/$pkgname"
+  cd "$srcdir/build"
 
   make prefix="$pkgdir/" install
 

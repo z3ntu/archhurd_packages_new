@@ -2,6 +2,7 @@
 *.gz
 *.xz
 *.bzip2
+*.bz2
 *.deb
 pkg/
 src/
