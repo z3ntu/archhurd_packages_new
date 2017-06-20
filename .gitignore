@@ -1,10 +1,12 @@
 *~
 *.gz
+*.tgz
 *.xz
 *.bzip2
 *.bz2
 *.deb
 *.sig
+*.asc
 pkg/
 src/
 */*/
