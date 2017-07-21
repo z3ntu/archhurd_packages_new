@@ -21,20 +21,23 @@ backup=(etc/gai.conf
 	options=('!strip')  #'staticlibs')
 install=glibc.install
 source=(git+https://git.savannah.gnu.org/git/hurd/glibc.git#branch=tschwinge/Roger_Whittaker
-#        https://github.com/bminor/glibc/commit/d145a456d9fcdc5d8560f4035bb6e35531ba8493.patch modified into mach_fix_old_style_function_definition.patch
+        git+https://git.savannah.gnu.org/git/hurd/libpthread.git
 	mach_fix_old_style_function_definition.patch
 	old_style_2.patch
         locale.gen.txt
         locale-gen)
 md5sums=('SKIP'
+         'SKIP'
          '963c34f827f8450f345152f40a72dae8'
          '9584b665221a57fb1f205d2ac341e737'
          '2c19b758a15b57d694df43348644fbfb'
          '476e9113489f93b348b21e144b6a8fcf')
 
 prepare() {
-  mkdir glibc-build
+  mkdir -p glibc-build
   cd glibc
+  cp -r $srcdir/libpthread $srcdir/glibc/libpthread
+
   patch -Np1 < $srcdir/mach_fix_old_style_function_definition.patch
   patch -Np1 < $srcdir/old_style_2.patch
 }  
@@ -55,26 +58,21 @@ build() {
   # remove fortify for building libraries
   CPPFLAGS=${CPPFLAGS/-D_FORTIFY_SOURCE=2/}
 
-    ../${pkgname}/configure --prefix=/usr --build=i686-pc-gnu \
-              --libdir=/usr/lib --libexecdir=/usr/lib \
-              --without-gd --without-cvs --disable-multi-arch \
-              --disable-profile --enable-add-ons=
-#  ../${pkgname}/configure \
-#      --prefix=/usr \
-#      --libdir=/usr/lib \
-#      --libexecdir=/usr/lib \
-#      --with-headers=/usr/include \
-#      --with-bugurl=https://bugs.archlinux.org/ \
-#      --enable-add-ons \
-#      --enable-obsolete-rpc \
-#      --enable-kernel=2.6.32 \
-#      --enable-bind-now \
-#      --disable-profile \
-#      --enable-stackguard-randomization \
-#      --enable-stack-protector=strong \
-#      --enable-lock-elision \
-#      --enable-multi-arch \
-#      --disable-werror
+  export CFLAGS="${CFLAGS} -fno-stack-protector"
+  export CPPFLAGS="${CPPFLAGS} -fno-stack-protector"
+
+    ../${pkgname}/configure \
+	    --prefix=/usr \
+	    --build=i686-pc-gnu \
+	    --libdir=/usr/lib \
+	    --libexecdir=/usr/lib \
+	    --cache-file=config.cache \
+	    --enable-obsolete-rpc \
+	    --disable-profile \
+	    --enable-add-ons=libpthread \
+	    --enable-obsolete-rpc \
+	    --disable-nscd \
+	    --disable-werror
 
   # build libraries with fortify disabled
   echo "build-programs=no" >> configparms

@@ -55,10 +55,30 @@ build() {
   # remove fortify for building libraries
   CPPFLAGS=${CPPFLAGS/-D_FORTIFY_SOURCE=2/}
 
-    ../glibc-2.23-hurd+libpthread-20161218/configure --prefix=/usr --build=i686-pc-gnu \
-              --libdir=/usr/lib --libexecdir=/usr/lib \
-              --without-gd --without-cvs --disable-multi-arch \
-              --disable-profile --enable-add-ons=
+    ../glibc-2.23-hurd+libpthread-20161218/configure \
+	    --prefix=/usr \
+	    --build=i686-pc-gnu \
+            --libdir=/usr/lib \
+	    --libexecdir=/usr/lib \
+	          --cache-file=config.cache \
+		        --enable-obsolete-rpc \
+			      --disable-profile \
+			            --enable-add-ons=libpthread \
+				          --enable-obsolete-rpc \
+					        --disable-nscd
+    # old archhurd glibc
+#    ../glibc-2.23-hurd+libpthread-20161218/configure \
+#	    --prefix=/usr \
+#	    --build=i686-pc-gnu \
+#            --libdir=/usr/lib \
+#	    --libexecdir=/usr/lib \
+#            --without-gd \
+#	    --without-cvs \
+#	    --disable-multi-arch \
+#            --disable-profile \
+#	    --enable-add-ons=
+
+    # upstream arch glibc
 #  ../${pkgname}/configure \
 #      --prefix=/usr \
 #      --libdir=/usr/lib \
