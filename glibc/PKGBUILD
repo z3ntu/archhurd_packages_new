@@ -20,32 +20,34 @@ backup=(etc/gai.conf
         etc/nscd.conf)
 	options=('!strip')  #'staticlibs')
 install=glibc.install
-source=(http://alpha.gnu.org/gnu/hurd/glibc-2.23-hurd+libpthread-20161218.tar.bz2
-#        https://github.com/bminor/glibc/commit/d145a456d9fcdc5d8560f4035bb6e35531ba8493.patch modified into mach_fix_old_style_function_definition.patch
-	mach_fix_old_style_function_definition.patch
-	old_style_2.patch
+source=(#http://alpha.gnu.org/gnu/hurd/glibc-2.23-hurd+libpthread-20161218.tar.bz2
+	https://private.z3ntu.xyz/glibc-2.24.tar.xz # apt-get source libc0.3 => pack into tar.xz. It has all the patches from Debian applied already.
+	tg-fcntl-internal.h.diff
+	tg-verify.h.diff
         locale.gen.txt
         locale-gen)
-md5sums=('SKIP'
-         '963c34f827f8450f345152f40a72dae8'
-         '9584b665221a57fb1f205d2ac341e737'
+md5sums=('62c52254196a4ac4f0b0cd5a3051ca27'
+         'e4dbab5588fb3cdadba22ebf5bd1fa8a'
+         'cc3d64d01e615b5504bf0f085a8c6fdd'
          '2c19b758a15b57d694df43348644fbfb'
          '476e9113489f93b348b21e144b6a8fcf')
 
 prepare() {
   mkdir glibc-build
-  cd glibc-2.23-hurd+libpthread-20161218
-  patch -Np1 < $srcdir/mach_fix_old_style_function_definition.patch
-  patch -Np1 < $srcdir/old_style_2.patch
+
+  cd glibc-2.24
+  # Patches from Debian that didn't get applied by apt-get source for some reason
+  patch -Np1 < $srcdir/tg-fcntl-internal.h.diff
+  patch -Np1 < $srcdir/tg-verify.h.diff
 }  
 
 build() {
   cd glibc-build
 
-  if [[ ${CARCH} = "i686" ]]; then
+#  if [[ ${CARCH} = "i686" ]]; then
     # Hack to fix NPTL issues with Xen, only required on 32bit platforms
-    export CFLAGS="${CFLAGS} -mno-tls-direct-seg-refs"
-  fi
+#    export CFLAGS="${CFLAGS} -mno-tls-direct-seg-refs"
+#  fi
 
   echo "slibdir=/usr/lib" >> configparms
   echo "rtlddir=/usr/lib" >> configparms
@@ -53,58 +55,55 @@ build() {
   echo "rootsbindir=/usr/bin" >> configparms
 
   # remove fortify for building libraries
-  CPPFLAGS=${CPPFLAGS/-D_FORTIFY_SOURCE=2/}
+#  CPPFLAGS=${CPPFLAGS/-D_FORTIFY_SOURCE=2/}
 
-    ../glibc-2.23-hurd+libpthread-20161218/configure \
-	    --prefix=/usr \
-	    --build=i686-pc-gnu \
-            --libdir=/usr/lib \
-	    --libexecdir=/usr/lib \
-	          --cache-file=config.cache \
-		        --enable-obsolete-rpc \
-			      --disable-profile \
-			            --enable-add-ons=libpthread \
-				          --enable-obsolete-rpc \
-					        --disable-nscd
-    # old archhurd glibc
-#    ../glibc-2.23-hurd+libpthread-20161218/configure \
-#	    --prefix=/usr \
-#	    --build=i686-pc-gnu \
-#            --libdir=/usr/lib \
-#	    --libexecdir=/usr/lib \
-#            --without-gd \
-#	    --without-cvs \
-#	    --disable-multi-arch \
-#            --disable-profile \
-#	    --enable-add-ons=
+  # Get rid of the default C*FLAGS
+  export CPPFLAGS=""
+  export CFLAGS=""
+  export CXXFLAGS=""
+  export LDFLAGS=""
 
-    # upstream arch glibc
-#  ../${pkgname}/configure \
+  # upstream arch glibc
+  ../${pkgname}-${pkgver}/configure \
+      --prefix=/usr \
+      --libdir=/usr/lib \
+      --libexecdir=/usr/lib \
+      --with-headers=/usr/include \
+      --with-bugurl=https://bugs.archlinux.org/ \
+      --enable-add-ons \
+      --enable-obsolete-rpc \
+      --enable-kernel=2.6.32 \
+      --enable-bind-now \
+      --disable-profile \
+      --enable-stackguard-randomization \
+      --enable-stack-protector=strong \
+      --enable-lock-elision \
+      --enable-multi-arch \
+      --disable-werror
+
+# configure from cross-hurd (I think)
+#  ../${pkgname}-${pkgver}/configure \
 #      --prefix=/usr \
+#      --build=i686-pc-gnu \
 #      --libdir=/usr/lib \
 #      --libexecdir=/usr/lib \
-#      --with-headers=/usr/include \
-#      --with-bugurl=https://bugs.archlinux.org/ \
-#      --enable-add-ons \
+#      --cache-file=config.cache \
 #      --enable-obsolete-rpc \
-#      --enable-kernel=2.6.32 \
-#      --enable-bind-now \
 #      --disable-profile \
-#      --enable-stackguard-randomization \
-#      --enable-stack-protector=strong \
-#      --enable-lock-elision \
-#      --enable-multi-arch \
+#      --enable-add-ons=libpthread \
+#      --enable-obsolete-rpc \
+#      --disable-nscd \
 #      --disable-werror
 
   # build libraries with fortify disabled
   echo "build-programs=no" >> configparms
-  make
+#  make
 
   # re-enable fortify for programs
   sed -i "/build-programs=/s#no#yes#" configparms
 
-  echo "CC += -D_FORTIFY_SOURCE=2" >> configparms
-  echo "CXX += -D_FORTIFY_SOURCE=2" >> configparms
+#  echo "CC += -D_FORTIFY_SOURCE=2" >> configparms
+#  echo "CXX += -D_FORTIFY_SOURCE=2" >> configparms
   make
 }
 
